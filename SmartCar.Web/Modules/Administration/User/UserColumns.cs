@@ -1,0 +1,25 @@
+﻿
+namespace SmartCar.Administration.Columns
+{
+    using Serenity.ComponentModel;
+    using System;
+
+    [ColumnsScript("Administration.User")]
+    [BasedOnRow(typeof(Entities.UserRow), CheckNames = true)]
+    public class UserColumns
+    {
+        [EditLink, AlignRight, Width(55)]
+        public String UserId { get; set; }
+        [EditLink, Width(150)]
+        public String Username { get; set; }
+        [Width(150)]
+        public String DisplayName { get; set; }
+        [Width(250)]
+        public String Email { get; set; }
+        [Width(100)]
+        public String Source { get; set; }
+        [EditLink(ItemType = "Default.Group", IdField = "GroupID"), Width(150)]
+        [LookupEditor(typeof(Default.Entities.GroupsRow)), QuickFilter]
+        public String GroupName { get; set; }
+    }
+}

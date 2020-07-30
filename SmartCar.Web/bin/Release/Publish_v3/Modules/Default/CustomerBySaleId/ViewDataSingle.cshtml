@@ -1,0 +1,306 @@
+﻿@{
+ViewData["Title"] = Serenity.LocalText.Get("Db.Default.Customer.EntityPlural");
+}
+
+<div id="GridDiv" class="s-CustomerGrid s-Default-CustomerGrid s-DataGrid require-layout route-handler responsive-height">
+    <div class="form-row grid-container">
+        <div class="form-group col-md-6">
+            <label for="inputEmail4"><h3>@Model.Name <span style="color:red;">@Model.Mobile</span> <sup>@Model.NetworkName</sup></h3></label><br>
+            <label for="inputEmail4">@Model.Address</label>
+        </div>
+        <div class="form-group col-md-6">
+            <label for="inputEmail4"><h3><span style="color:darkblue;">@Model.CarCode</span></h3></label><br>
+            <label for="inputPassword4">Ngày hết hạn đăng kiểm: @Model.DateRegistry</label>
+        </div>
+        <div class="form-group col-md-12 center-block" style="text-align:center">
+            <label for="inputEmail4"><h3>Số tiền ước tính:<span value="0" class="Price-show" style="color:red;"> 0</span></h3></label><br>
+            <label for="inputEmail4"><h5>Giá tiền được chiết khấu:<span value="0" class="Discount-show" style="color:red;"> 0</span></h5></label>
+        </div>
+    </div>
+    <div class="form-row grid-container">
+        <div class="form-group col-md-4">
+            <label for="inputState">Loại xe</label>
+            <select id="TypeCar" class="form-control" onchange="ChangeSoTien()">
+                <option selected>--Chọn loại xe--</option>
+                <option>Xe không kinh doanh</option>
+                <option>Xe kinh doanh</option>
+                <option>Xe tải dưới 3 tấn</option>
+                <option>Xe tải từ 3 đến 8 tấn</option>
+                <option>Xe tải trên 8 đến 15 tấn</option>
+                <option>Xe tải trên 15 tấn</option>
+                <option>Xe taxi</option>
+                <option>Xe đầu kéo</option>
+            </select>
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputState">Số chỗ ngồi</label>
+            <input type="number" id="SeatNumber" class="form-control" value="4" onchange="ChangeSoTien()">
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputState">Chiết khấu</label>
+            <select id="Discount" class="form-control" onchange="ChangeSoTien()">
+                <option value="0" >0%</option>
+                <option value="0.15" selected>15%</option>
+                <option value="0.2">20%</option>
+            </select>
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputState">Giá bán (vnđ)</label>
+            <input type="number" id="Price" class="form-control">
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputState">Ngày bán</label>
+            <input type="date" id="SaleDate" class="form-control">
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputState">Ghi chú</label>
+            <input type="text" id="SaleNote" class="form-control">
+        </div>
+        <div class="form-group row">
+            <div class="col-sm-3">
+                <button id="DongYMuaHang" class="btn btn-block btn-primary">Đồng ý mua hàng</button>
+            </div>
+            <div class="col-sm-3">
+                <button id="HenGoiLai" class="btn btn-block btn-info">Hẹn gọi lại</button>
+            </div>
+            <div class="col-sm-3">
+                <button id="KhongCoNhuCau" class="btn btn-block btn-warning">Không có nhu cầu</button>
+            </div>
+            <div class="col-sm-3">
+                <button id="KhongNgheMay" class="btn btn-block btn-danger">Không nghe máy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    jQuery(function () {
+        //new SmartCar.Default.CustomerBySaleIdGrid($('#GridDiv'), {}).init();
+
+        //Q.initFullHeightGridPage($('#GridDiv'));
+    });
+    $("#DongYMuaHang").on("click", function () {
+        UpdateStatus(3);
+    });
+    $("#HenGoiLai").on("click", function () {
+        UpdateStatus(4);
+    });
+    $("#KhongCoNhuCau").on("click", function () {
+        UpdateStatus(2);
+    });
+    $("#KhongNgheMay").on("click", function () {
+        UpdateStatus(1);
+    });
+    function UpdateStatus(status) {
+        var entityID = @Model.CustomerID;
+        var temp = '{"CustomerID":"@Model.CustomerID","TypeCar":"' + $("#TypeCar").val() + '","SeatNumber":"' +
+            $("#SeatNumber").val() + '","Discount":"' + $("#Discount").val() + '","Price":"' + $("#Price").val() +
+            '","SaleNote":"' + $("#SaleNote").val() + '","StatusId":"' + status;
+        if ($("#SaleDate").val()!="") {
+            temp+= '","SaleDate":"' + $("#SaleDate").val();
+        }
+        temp += '"}';
+        var entity = JSON.parse(temp);
+        Q.serviceRequest('Default/CustomerBySaleId/Update', {
+            EntityId: entityID,
+            Entity: entity
+        }, (response) => {
+                window.location.reload();
+            //console.log(response);
+        });
+    }
+    function ChangeSoTien() {
+        var LoaiXe = $("#TypeCar").val();
+        var SoChoNgoi = parseInt($("#SeatNumber").val());
+        var ChietKhau = parseFloat($("#Discount").val());
+        var Price = 0;
+        switch (LoaiXe) {
+            case "Xe không kinh doanh":
+                if (SoChoNgoi < 6) {
+                    Price = 437000;                    
+                }
+                else if (6 <= SoChoNgoi && SoChoNgoi <= 11) {
+                    Price = 794000;
+                }
+                else if (12 <= SoChoNgoi && SoChoNgoi <= 24) {
+                    Price = 1270000;
+                }
+                else {
+                    Price = 1825000;
+                }
+                break;
+            case "Xe kinh doanh":
+                if (SoChoNgoi < 6) {
+                    Price = 756000;
+                }
+                else if (6 <= SoChoNgoi && SoChoNgoi <= 25) {
+                    switch (SoChoNgoi) {
+                        case 6:
+                            Price = 929000;
+                            break;
+                        case 7:
+                            Price = 1080000;
+                            break;
+                        case 8:
+                            Price = 1253000;
+                            break;
+                        case 9:
+                            Price = 1404000;
+                            break;
+                        case 10:
+                            Price = 1512000;
+                            break;
+                        case 11:
+                            Price = 1656000;
+                            break;
+                        case 12:
+                            Price = 1822000;
+                            break;
+                        case 13:
+                            Price = 2049000;
+                            break;
+                        case 14:
+                            Price = 2221000;
+                            break;
+                        case 15:
+                            Price = 2394000;
+                            break;
+                        case 16:
+                            Price = 3054000;
+                            break;
+                        case 17:
+                            Price = 2718000;
+                            break;
+                        case 18:
+                            Price = 2869000;
+                            break;
+                        case 19:
+                            Price = 3041000;
+                            break;
+                        case 20:
+                            Price = 3191000;
+                            break;
+                        case 21:
+                            Price = 3364000;
+                            break;
+                        case 22:
+                            Price = 3515000;
+                            break;
+                        case 23:
+                            Price = 3688000;
+                            break;
+                        case 24:
+                            Price = 4632000;
+                            break;
+                        case 25:
+                            Price = 4813000;
+                            break;
+                    }
+                }
+                else {
+                    Price = 4813000+(30000*(SoChoNgoi-25));
+                }
+                break;
+            case "Xe tải dưới 3 tấn":
+                Price = 853000;
+                break;
+            case "Xe tải từ 3 đến 8 tấn":
+                Price = 1660000;
+                break;
+            case "Xe tải trên 8 đến 15 tấn":
+                Price = 2746000;
+                break;
+            case "Xe tải trên 15 tấn":
+                Price = 3200000;
+                break;
+            case "Xe taxi":
+                if (SoChoNgoi < 6) {
+                    Price = 756000;
+                }
+                else if (6 <= SoChoNgoi && SoChoNgoi <= 25) {
+                    switch (SoChoNgoi) {
+                        case 6:
+                            Price = 929000;
+                            break;
+                        case 7:
+                            Price = 1080000;
+                            break;
+                        case 8:
+                            Price = 1253000;
+                            break;
+                        case 9:
+                            Price = 1404000;
+                            break;
+                        case 10:
+                            Price = 1512000;
+                            break;
+                        case 11:
+                            Price = 1656000;
+                            break;
+                        case 12:
+                            Price = 1822000;
+                            break;
+                        case 13:
+                            Price = 2049000;
+                            break;
+                        case 14:
+                            Price = 2221000;
+                            break;
+                        case 15:
+                            Price = 2394000;
+                            break;
+                        case 16:
+                            Price = 3054000;
+                            break;
+                        case 17:
+                            Price = 2718000;
+                            break;
+                        case 18:
+                            Price = 2869000;
+                            break;
+                        case 19:
+                            Price = 3041000;
+                            break;
+                        case 20:
+                            Price = 3191000;
+                            break;
+                        case 21:
+                            Price = 3364000;
+                            break;
+                        case 22:
+                            Price = 3515000;
+                            break;
+                        case 23:
+                            Price = 3688000;
+                            break;
+                        case 24:
+                            Price = 4632000;
+                            break;
+                        case 25:
+                            Price = 4813000;
+                            break;
+                    }
+                }
+                else {
+                    Price = 4813000+(30000*(SoChoNgoi-25));
+                }
+                Price = Price * 1.7;
+                break;
+            case "Xe đầu kéo":
+                Price = 4800000;
+                break;
+        }
+        if (Price > 3000000) {
+            ChietKhau = 0.2;
+            $("#Discount").val("0.2");
+        }
+        var lastPrice = (Price + (Price / 10)) - (Price * ChietKhau);
+        var discountPrice = Price * ChietKhau;
+        $(".Price-show").attr("value", parseFloat(lastPrice).toLocaleString('vi', { style: 'currency', currency: 'VND' }));
+        $(".Price-show").html(parseFloat(lastPrice).toLocaleString('vi', { style: 'currency', currency: 'VND' }));
+        $(".Discount-show").attr("value", parseFloat(discountPrice).toLocaleString('vi', { style: 'currency', currency: 'VND' }));
+        $(".Discount-show").html(parseFloat(discountPrice).toLocaleString('vi', {style : 'currency', currency : 'VND'}));
+        $("#Price").attr("value", lastPrice);
+        $("#Price").html(lastPrice);
+    }
+</script>
